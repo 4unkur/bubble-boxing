@@ -2,7 +2,7 @@
 import { PoseLandmarker, FilesetResolver } from "./vendor/mediapipe/vision_bundle.mjs";
 
 // ---------------------------------------------------------------------------
-// Settings — tweak freely. URL params override some: ?time=60&lang=ru&level=3
+// Settings — tweak freely. URL params override some: ?time=60&level=3
 // ---------------------------------------------------------------------------
 const params = new URLSearchParams(location.search);
 const CONFIG = {
@@ -34,47 +34,26 @@ const LEVEL_KEY = "bubbleBoxing.level";
 const EMOJIS = ["🐟", "🐠", "🐙", "🦆", "🍓", "🐸", "🦋", "🐞", "🍎", "⭐", "🐳", "🦀"];
 const COLORS = ["#3fc8ff", "#ff5ec8"]; // glove glow per player (sorted by screen position)
 
+// Everything the kids hear and see is in Russian.
 const TEXT = {
-  en: {
-    raise: "Raise your hands to start!",
-    again: "Raise your hands to play again!",
-    count: ["Three", "Two", "One"],
-    go: "Go! Punch the bubbles!",
-    goBombs: "Go! Punch the bubbles, not the bombs!",
-    cheers: ["Wow!", "What a punch!", "Super!", "Keep going!", "Great job!", "Fantastic!", "Champion!"],
-    combo: (n) => `${n} in a row!`,
-    big: "Big bubble! Punch it again and again!",
-    bigDone: "You did it!",
-    punchHint: "Punch it fast! Pow!",
-    pows: ["POW!", "BAM!", "WHAM!", "BIFF!", "BOP!"],
-    done: (n) => `Hooray! You got ${n} points!`,
-    cantSee: "I can't see you! Come in front of the camera",
-    stepBack: "Step back a little",
-    paused: "Paused",
-    noCam: "Camera not available — you can play with the mouse",
-    levels: ["Easy!", "Medium!", "Hard! Watch out for bombs!"],
-    boom: "Boom! Oops!",
-  },
-  ru: {
-    raise: "Подними руки, чтобы начать!",
-    again: "Подними руки, чтобы играть ещё!",
-    count: ["Три", "Два", "Один"],
-    go: "Вперёд! Бей пузыри!",
-    goBombs: "Вперёд! Бей пузыри, но не бомбы!",
-    cheers: ["Ух ты!", "Вот это удар!", "Супер!", "Так держать!", "Молодец!", "Отлично!", "Чемпион!"],
-    combo: (n) => `${n} подряд!`,
-    big: "Большой пузырь! Бей ещё и ещё!",
-    bigDone: "Получилось!",
-    punchHint: "Бей быстро! Бам!",
-    pows: ["БАМ!", "БАЦ!", "ХЛОП!", "БУХ!", "ТЫЩ!"],
-    done: (n) => `Ура! У тебя ${n} ${ruPlural(n, "очко", "очка", "очков")}!`,
-    cantSee: "Я тебя не вижу! Встань перед камерой",
-    stepBack: "Отойди чуть-чуть назад",
-    paused: "Пауза",
-    noCam: "Камера недоступна — можно играть мышкой",
-    levels: ["Легко!", "Средне!", "Трудно! Осторожно, бомбы!"],
-    boom: "Бум! Ой!",
-  },
+  raise: "Подними руки, чтобы начать!",
+  again: "Подними руки, чтобы играть ещё!",
+  count: ["Три", "Два", "Один"],
+  go: "Вперёд! Бей пузыри!",
+  goBombs: "Вперёд! Бей пузыри, но не бомбы!",
+  cheers: ["Ух ты!", "Вот это удар!", "Супер!", "Так держать!", "Молодец!", "Отлично!", "Чемпион!"],
+  combo: (n) => `${n} подряд!`,
+  big: "Большой пузырь! Бей ещё и ещё!",
+  bigDone: "Получилось!",
+  punchHint: "Бей быстро! Бам!",
+  pows: ["БАМ!", "БАЦ!", "ХЛОП!", "БУХ!", "ТЫЩ!"],
+  done: (n) => `Ура! У тебя ${n} ${ruPlural(n, "очко", "очка", "очков")}!`,
+  cantSee: "Я тебя не вижу! Встань перед камерой",
+  stepBack: "Отойди чуть-чуть назад",
+  paused: "Пауза",
+  noCam: "Камера недоступна — можно играть мышкой",
+  levels: ["Легко!", "Средне!", "Трудно! Осторожно, бомбы!"],
+  boom: "Бум! Ой!",
 };
 
 function ruPlural(n, one, few, many) {
@@ -83,9 +62,6 @@ function ruPlural(n, one, few, many) {
   if (m10 >= 2 && m10 <= 4 && (m100 < 10 || m100 >= 20)) return few;
   return many;
 }
-
-let lang = TEXT[params.get("lang")] ? params.get("lang") : "en";
-const t = () => TEXT[lang];
 
 // Only hands punch: averaged wrist/knuckle landmarks + hit padding (fraction of H).
 const HANDS = [
@@ -275,12 +251,11 @@ function say(text) {
   if (muted || !("speechSynthesis" in window)) return;
   speechSynthesis.cancel();
   const u = new SpeechSynthesisUtterance(text);
-  const code = lang === "ru" ? "ru" : "en";
   // Prefer the Mac's built-in voices: Chrome's "Google …" voices need the internet.
-  const voices = speechSynthesis.getVoices().filter((v) => v.lang.toLowerCase().startsWith(code));
+  const voices = speechSynthesis.getVoices().filter((v) => v.lang.toLowerCase().startsWith("ru"));
   const voice = voices.find((v) => v.localService) || voices[0];
   if (voice) u.voice = voice;
-  u.lang = lang === "ru" ? "ru-RU" : "en-US";
+  u.lang = "ru-RU";
   u.pitch = 1.25;
   u.rate = 0.95;
   speechSynthesis.speak(u);
@@ -457,7 +432,7 @@ function spawnBubble(ambient = false) {
     inside: new Set(), // hands touching it last frame
   });
   whooshSound();
-  if (big) say(t().big);
+  if (big) say(TEXT.big);
   return true;
 }
 
@@ -476,7 +451,7 @@ function burst(x, y, r, hue, n, golden) {
 
 // Comic-book word for a hit, tilted and in the glove's glow color.
 function powText(x, y, size, color) {
-  particles.push({ type: "pow", text: pick(t().pows), x, y, vy: -0.08 * H, size, rot: rand(-0.3, 0.3), life: 0, max: 0.8, color });
+  particles.push({ type: "pow", text: pick(TEXT.pows), x, y, vy: -0.08 * H, size, rot: rand(-0.3, 0.3), life: 0, max: 0.8, color });
 }
 
 // A punch landed on a bubble (scored = during a round).
@@ -521,7 +496,7 @@ function popBubble(b, scored, p) {
   score += pts;
   if (b.big) {
     chime();
-    say(t().bigDone);
+    say(TEXT.bigDone);
     confetti(50, b.x, b.y);
     particles.push({ type: "text", text: "+5", x: b.x, y: b.y + b.r * 0.6, vy: -0.15 * H, size: 0.09 * H, life: 0, max: 1.2, color: "#ffd23f" });
   } else {
@@ -529,11 +504,11 @@ function popBubble(b, scored, p) {
   }
   if (score >= nextMilestone) {
     nextMilestone += CONFIG.milestone;
-    if (!b.big) { chime(); say(pick(t().cheers)); }
+    if (!b.big) { chime(); say(pick(TEXT.cheers)); }
     confetti(60);
   } else if (combo >= 5 && combo % 5 === 0 && !b.big) {
     chime();
-    say(t().combo(combo));
+    say(TEXT.combo(combo));
     confetti(30, b.x, b.y);
   }
 }
@@ -554,7 +529,7 @@ function popBomb(b, touched) {
   }
   if (!touched) return;
   boomSound();
-  say(t().boom);
+  say(TEXT.boom);
   shake = 0.4;
   flash = 0.35;
   combo = 0;
@@ -590,7 +565,7 @@ function startCountdown() {
   countdown = 3.999;
   state = "countdown";
   beep(false);
-  say(t().count[0]);
+  say(TEXT.count[0]);
 }
 
 function endRound() {
@@ -599,7 +574,7 @@ function endRound() {
   bubbles.forEach((b, i) => (b.autoPopAt = i * 0.09));
   fanfare();
   confetti(150);
-  setTimeout(() => say(t().done(score)), 600);
+  setTimeout(() => say(TEXT.done(score)), 600);
 }
 
 // Level picker: the start screen shows one animal button per level.
@@ -624,7 +599,7 @@ function setLevel(i) {
   level = i;
   try { localStorage.setItem(LEVEL_KEY, String(i)); } catch {}
   chime();
-  say(t().levels[i]);
+  say(TEXT.levels[i]);
   const btn = levelButtons()[i];
   particles.push({ type: "ring", x: btn.x, y: btn.y, r: btn.r * 1.2, life: 0, max: 0.6, color: "#ffd23f" });
   confetti(24, btn.x, btn.y);
@@ -633,7 +608,7 @@ function setLevel(i) {
 const inMenu = (now) => state === "ready" || (state === "done" && now - doneAt > 3500);
 
 function togglePause() {
-  if (state === "playing") { state = "paused"; say(t().paused); }
+  if (state === "playing") { state = "paused"; say(TEXT.paused); }
   else if (state === "paused") state = "playing";
 }
 
@@ -786,8 +761,8 @@ function update(dt, now) {
     countdown -= dt;
     const after = Math.ceil(countdown - 1);
     if (after !== before) {
-      if (after > 0) { beep(false); say(t().count[3 - after]); }
-      else { beep(true); say(lv().bombChance > 0 ? t().goBombs : t().go); state = "playing"; spawnTimer = 0.4; }
+      if (after > 0) { beep(false); say(TEXT.count[3 - after]); }
+      else { beep(true); say(lv().bombChance > 0 ? TEXT.goBombs : TEXT.go); state = "playing"; spawnTimer = 0.4; }
     }
   }
 
@@ -845,7 +820,7 @@ function update(dt, now) {
         b.squish = 1;
         boingSound();
         if (scoring && ++gentleTouches >= 3 && now - punchHintAt > 15000) {
-          say(t().punchHint);
+          say(TEXT.punchHint);
           punchHintAt = now;
           gentleTouches = 0;
         }
@@ -872,7 +847,7 @@ function update(dt, now) {
   if (h !== hint) {
     hint = h;
     if (h && h !== "noCam" && state !== "countdown" && now - hintSpokenAt > 10000) {
-      say(t()[h]);
+      say(TEXT[h]);
       hintSpokenAt = now;
     }
   }
@@ -1174,19 +1149,19 @@ function drawHUD(now) {
   if (state === "paused") {
     ctx.fillStyle = "rgba(40,0,30,0.4)";
     ctx.fillRect(0, 0, W, H);
-    label(`⏸ ${t().paused}`, cx, cy, 130 * s);
+    label(`⏸ ${TEXT.paused}`, cx, cy, 130 * s);
   }
 
   if (hint) {
     const icon = hint === "stepBack" ? "👣 " : hint === "cantSee" ? "👀 " : "🖱 ";
-    label(icon + t()[hint], cx, H - 90 * s, 54 * s, { pill: "rgba(255,90,90,0.75)" });
+    label(icon + TEXT[hint], cx, H - 90 * s, 54 * s, { pill: "rgba(255,90,90,0.75)" });
   }
 }
 
 // Start / play-again screen: raise hands to start, touch an animal to pick the level.
 function drawMenu(now, s) {
   const cx = W / 2;
-  const msg = state === "ready" ? t().raise : t().again;
+  const msg = state === "ready" ? TEXT.raise : TEXT.again;
   const bob = Math.sin(now / 300) * 15 * s;
   const iconY = 250 * s;
   ctx.save();
@@ -1272,20 +1247,20 @@ startBtn.addEventListener("click", async () => {
   say(" "); // unlock speech in Chrome
   toggleFullscreen();
   startBtn.disabled = true;
-  startBtn.textContent = "⏳ Loading…";
+  startBtn.textContent = "⏳ Загрузка…";
   const [cam, model] = await Promise.allSettled([startCamera(), loadModel()]);
   if (cam.status === "rejected") console.error("Camera:", cam.reason);
   if (model.status === "rejected") {
     console.error("Model:", model.reason);
-    introMsg.innerHTML = '<span class="err">Could not load the body-tracking model. Check that the vendor folder is in place.</span>';
+    introMsg.innerHTML = '<span class="err">Не удалось загрузить распознавание движений. Проверьте, что папка vendor на месте.</span>';
     startBtn.disabled = false;
-    startBtn.textContent = "▶ Play";
+    startBtn.textContent = "▶ Играть";
     return;
   }
   intro.style.display = "none";
   state = "ready";
   lastSeen = performance.now();
-  say(t().raise);
+  say(TEXT.raise);
 });
 
 window.addEventListener("keydown", (e) => {
@@ -1298,7 +1273,6 @@ window.addEventListener("keydown", (e) => {
   } else if (k === "f") toggleFullscreen();
   else if (k === "d") debug = !debug;
   else if (k === "m") { muted = !muted; if (muted) speechSynthesis.cancel(); }
-  else if (k === "l") { lang = lang === "en" ? "ru" : "en"; say(state === "done" ? t().again : t().raise); }
   else if (LEVELS[Number(k) - 1]) setLevel(Number(k) - 1);
 });
 

@@ -29,6 +29,7 @@ Same as Bubble Pop: MacBook under the TV with the lid open, the kid **2–3 m aw
 - **Big golden ⭐ bubbles** need several punches (the white dots show how many are left) and are worth +5.
 - Pops in quick succession build a 🔥 combo. Every 5 in a row gets a cheer.
 - One player. If two kids stand in view, bubbles go around the one closest to the camera, but anyone's gloves can pop them.
+- Everything on screen and every spoken phrase is in Russian (there is no English mode). Speech uses the device's built-in Russian voice; on Windows that needs the Russian language pack.
 - Nobody loses: cheers every 15 points and confetti at the end.
 
 ## Keys
@@ -39,15 +40,13 @@ Same as Bubble Pop: MacBook under the TV with the lid open, the kid **2–3 m aw
 | Space | Start / pause |
 | 1 / 2 / 3 | Easy / medium / hard |
 | M | Mute |
-| L | Switch English ↔ Russian voice |
 | D | Show the tracked skeleton and each glove's speed (debug) |
 
 ## Options (URL)
 
 - `?time=90`: round length in seconds
-- `?lang=ru`: Russian voice and text
 - `?level=1|2|3`: start on easy / medium / hard
 
-Example: `http://localhost:8102/?time=90&lang=ru`
+Example: `http://localhost:8102/?time=90&level=2`
 
 More tuning is at the top of `game.js`. `LEVELS` sets per level how many bubbles at once, how long they wait (`stay`), their size, the big-bubble punches and the bomb chance, and `punch`, the glove speed needed to pop, in torso lengths per second. If punches don't register, press **D** and watch the numbers on the gloves while punching, then lower `punch`. `CONFIG.reach` sets how far from the shoulder bubbles appear.
